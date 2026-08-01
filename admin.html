@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="給 Jia 的協作任務與交付排程管理看板" />
+    <meta name="theme-color" content="#16342f" />
+    <title>Jia 的任務看板｜協作需求中心</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="admin-page">
+    <a class="skip-link" href="#request-table">跳到需求列表</a>
+
+    <aside class="admin-sidebar">
+      <a class="brand brand-light" href="./index.html" aria-label="給 Jia 的協作需求首頁">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M7 4.75h10A2.25 2.25 0 0 1 19.25 7v10A2.25 2.25 0 0 1 17 19.25H7A2.25 2.25 0 0 1 4.75 17V7A2.25 2.25 0 0 1 7 4.75Z" />
+            <path d="m8.25 12 2.25 2.25 5.25-5.25" />
+          </svg>
+        </span>
+        <span><strong>Jia 協作中心</strong><small>JIA WORK HUB</small></span>
+      </a>
+      <nav class="admin-nav" aria-label="主要選單">
+        <a class="active" href="./admin.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13h5V5H5zM14 19h5v-6h-5zM5 19h5v-2H5zM14 9h5V5h-5z" /></svg>
+          Jia 任務總覽
+        </a>
+        <a href="./index.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+          發任務給 Jia
+        </a>
+        <a href="./status.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" /><path d="M12 8v4l3 2" /></svg>
+          任務追蹤頁
+        </a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="connection-card">
+          <span class="status-dot" id="connection-dot"></span>
+          <div><strong id="connection-title">確認資料來源</strong><small id="connection-detail">正在連線…</small></div>
+        </div>
+        <p>INTERNAL WORKSPACE</p>
+      </div>
+    </aside>
+
+    <header class="mobile-admin-header">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M7 4.75h10A2.25 2.25 0 0 1 19.25 7v10A2.25 2.25 0 0 1 17 19.25H7A2.25 2.25 0 0 1 4.75 17V7A2.25 2.25 0 0 1 7 4.75Z" /><path d="m8.25 12 2.25 2.25 5.25-5.25" /></svg>
+        </span>
+        <span><strong>Jia 協作中心</strong></span>
+      </a>
+      <a class="icon-button" href="./index.html" aria-label="發任務給 Jia"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></a>
+    </header>
+
+    <main class="admin-main">
+      <section class="dashboard-head">
+        <div>
+          <p class="section-kicker">JIA'S WORK DASHBOARD</p>
+          <h1>Jia 的協作任務</h1>
+          <p>依交付時間掌握 Jia 的任務優先順序與近期工作量。</p>
+        </div>
+        <div class="dashboard-actions">
+          <span class="last-updated" id="last-updated">尚未更新</span>
+          <button class="secondary-button compact" id="refresh-button" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8a7.5 7.5 0 1 0 .45 7M19 4v4h-4" /></svg>
+            重新整理
+          </button>
+          <a class="primary-button compact" href="./index.html">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            發任務給 Jia
+          </a>
+        </div>
+      </section>
+
+      <section class="summary-grid" aria-label="需求摘要">
+        <article class="summary-card total">
+          <div class="summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h12v14H6zM9 9h6M9 13h6M9 17h4" /></svg></div>
+          <div><span>全部任務</span><strong id="summary-total">—</strong><small>筆協作項目</small></div>
+        </article>
+        <article class="summary-card overdue">
+          <div class="summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5M12 17h.01M4.7 19h14.6L12 5z" /></svg></div>
+          <div><span>已逾期</span><strong id="summary-overdue">—</strong><small>需優先確認</small></div>
+        </article>
+        <article class="summary-card today">
+          <div class="summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" /><path d="M12 7.5V12l3 2" /></svg></div>
+          <div><span>今日到期</span><strong id="summary-today">—</strong><small>今日需交付</small></div>
+        </article>
+        <article class="summary-card upcoming">
+          <div class="summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.75 4v3M17.25 4v3M4.75 9h14.5M6.25 5.75h11.5a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5H6.25a1.5 1.5 0 0 1-1.5-1.5v-11a1.5 1.5 0 0 1 1.5-1.5Z" /></svg></div>
+          <div><span>七日內到期</span><strong id="summary-upcoming">—</strong><small>近期工作量</small></div>
+        </article>
+      </section>
+
+      <section class="request-section">
+        <div class="request-section-head">
+          <div>
+            <h2>Jia 的工作清單</h2>
+            <span id="result-count">共 0 筆</span>
+          </div>
+          <div class="filter-row">
+            <label class="search-box" for="search-input">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.75" /><path d="m15 15 4 4" /></svg>
+              <input id="search-input" type="search" placeholder="搜尋填寫人或工作內容" />
+            </label>
+            <label class="filter-select">
+              <span class="sr-only">類別篩選</span>
+              <select id="category-filter">
+                <option value="all">全部類別</option>
+                <option value="行銷">行銷</option>
+                <option value="行政">行政</option>
+                <option value="營運">營運</option>
+                <option value="業務">業務</option>
+                <option value="其他">其他</option>
+              </select>
+            </label>
+            <label class="filter-select">
+              <span class="sr-only">到期狀態篩選</span>
+              <select id="status-filter">
+                <option value="all">全部時程</option>
+                <option value="overdue">已逾期</option>
+                <option value="today">今日到期</option>
+                <option value="upcoming">七日內到期</option>
+                <option value="later">七日後</option>
+                <option value="unscheduled">待確認</option>
+              </select>
+            </label>
+            <label class="filter-select">
+              <span class="sr-only">任務狀態篩選</span>
+              <select id="work-status-filter">
+                <option value="all">全部狀態</option>
+                <option value="待處理">待處理</option>
+                <option value="進行中">進行中</option>
+                <option value="已完成">已完成</option>
+              </select>
+            </label>
+            <button class="sort-button" id="sort-button" type="button" data-direction="asc">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M5 8l3-3 3 3M16 19V5M13 16l3 3 3-3" /></svg>
+              <span id="sort-label">交付時間：近到遠</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap" id="request-table" tabindex="-1">
+          <table>
+            <thead>
+              <tr>
+                <th>交付時間</th>
+                <th>任務狀態</th>
+                <th>類別</th>
+                <th>工作內容</th>
+                <th>填寫人</th>
+                <th>備註</th>
+                <th>任務處理</th>
+              </tr>
+            </thead>
+            <tbody id="request-tbody"></tbody>
+          </table>
+          <div class="empty-state" id="empty-state" hidden>
+            <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.75h10A2.25 2.25 0 0 1 19.25 7v10A2.25 2.25 0 0 1 17 19.25H7A2.25 2.25 0 0 1 4.75 17V7A2.25 2.25 0 0 1 7 4.75Z" /><path d="M8.5 12h7" /></svg></span>
+            <h3>目前沒有符合條件的任務</h3>
+            <p id="empty-copy">發送第一個任務給 Jia 後，協作項目就會出現在這裡。</p>
+            <a class="secondary-button compact" href="./index.html">發任務給 Jia</a>
+          </div>
+        </div>
+
+        <div class="mobile-request-list" id="mobile-request-list"></div>
+      </section>
+    </main>
+
+    <div class="task-modal" id="task-modal" hidden>
+      <button class="modal-backdrop" type="button" data-close-modal aria-label="關閉任務處理視窗"></button>
+      <section class="task-modal-panel" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
+        <div class="task-modal-head">
+          <div>
+            <p class="section-kicker">UPDATE TASK</p>
+            <h2 id="task-modal-title">更新任務進度</h2>
+          </div>
+          <button class="modal-close" type="button" data-close-modal aria-label="關閉">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+
+        <div class="modal-task-summary">
+          <code id="modal-task-id">—</code>
+          <strong id="modal-task-description">—</strong>
+          <span id="modal-task-requester">—</span>
+        </div>
+
+        <form id="task-update-form">
+          <input type="hidden" id="modal-request-id" name="id" />
+          <div class="field-group">
+            <label for="modal-task-status">任務狀態</label>
+            <div class="input-shell select-shell no-icon">
+              <select id="modal-task-status" name="status" required>
+                <option value="待處理">待處理</option>
+                <option value="進行中">進行中</option>
+                <option value="已完成">已完成</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="modal-delivery-reply">交付回覆 <small>發任務的人會在追蹤頁看到</small></label>
+            <textarea id="modal-delivery-reply" name="deliveryReply" rows="7" maxlength="2000" placeholder="可填寫完成內容、交付連結、檔案位置或需要對方確認的事項⋯"></textarea>
+            <div class="field-meta align-right"><span id="reply-count">0 / 2000</span></div>
+          </div>
+          <div class="modal-actions">
+            <a class="secondary-button" id="modal-tracking-link" href="./status.html" target="_blank" rel="noopener">開啟追蹤頁</a>
+            <button class="primary-button" id="save-task-button" type="submit">儲存進度與回覆</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    <script src="./config.js"></script>
+    <script src="./data-store.js"></script>
+    <script src="./admin.js"></script>
+  </body>
+</html>

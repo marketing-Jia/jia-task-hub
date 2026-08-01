@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="追蹤發給 Jia 的協作任務進度與交付回覆" />
+    <meta name="theme-color" content="#16342f" />
+    <title>追蹤任務｜給 Jia 的協作需求</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="tracking-page">
+    <a class="skip-link" href="#tracking-content">跳到任務追蹤內容</a>
+
+    <header class="site-header tracking-header">
+      <a class="brand" href="./index.html" aria-label="給 Jia 的協作需求首頁">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M7 4.75h10A2.25 2.25 0 0 1 19.25 7v10A2.25 2.25 0 0 1 17 19.25H7A2.25 2.25 0 0 1 4.75 17V7A2.25 2.25 0 0 1 7 4.75Z" />
+            <path d="m8.25 12 2.25 2.25 5.25-5.25" />
+          </svg>
+        </span>
+        <span><strong>給 Jia 的協作需求</strong><small>WORK REQUEST TO JIA</small></span>
+      </a>
+      <a class="primary-button compact" href="./index.html">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        發任務給 Jia
+      </a>
+    </header>
+
+    <main class="tracking-main" id="tracking-content">
+      <section class="tracking-intro">
+        <p class="section-kicker">TASK TRACKING</p>
+        <h1>追蹤給 Jia 的任務</h1>
+        <p>輸入任務編號，即可查看處理狀態與 Jia 的交付回覆。</p>
+      </section>
+
+      <form class="tracking-search" id="tracking-search-form">
+        <label for="tracking-id">任務編號</label>
+        <div>
+          <span class="tracking-input-shell">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.75" /><path d="m15 15 4 4" /></svg>
+            <input id="tracking-id" name="id" type="text" autocomplete="off" placeholder="例如 REQ-20260801-AB12CD34" required />
+          </span>
+          <button class="primary-button" type="submit" id="tracking-submit">查詢任務</button>
+        </div>
+        <p>任務編號可在送出成功畫面中找到。</p>
+      </form>
+
+      <section class="recent-requests" id="recent-requests" hidden>
+        <div class="tracking-section-head">
+          <h2>這個瀏覽器最近送出的任務</h2>
+          <span>點選編號即可查詢</span>
+        </div>
+        <div class="recent-id-list" id="recent-id-list"></div>
+      </section>
+
+      <div class="tracking-loading" id="tracking-loading" hidden>
+        <span></span>
+        正在讀取任務進度…
+      </div>
+
+      <section class="tracking-error" id="tracking-error" hidden role="alert">
+        <span aria-hidden="true">!</span>
+        <div><h2>找不到這個任務</h2><p id="tracking-error-copy">請確認任務編號後再試一次。</p></div>
+      </section>
+
+      <article class="tracking-result" id="tracking-result" hidden>
+        <div class="tracking-result-head">
+          <div>
+            <span class="work-status-badge" id="tracking-status">待處理</span>
+            <h2 id="tracking-description">—</h2>
+            <code id="tracking-result-id">—</code>
+          </div>
+          <p>最後更新 <strong id="tracking-updated">—</strong></p>
+        </div>
+
+        <ol class="tracking-progress" id="tracking-progress" aria-label="任務進度">
+          <li data-step="待處理"><span>1</span><div><strong>待處理</strong><small>Jia 已收到任務</small></div></li>
+          <li data-step="進行中"><span>2</span><div><strong>進行中</strong><small>Jia 正在處理</small></div></li>
+          <li data-step="已完成"><span>3</span><div><strong>已完成</strong><small>已提供交付內容</small></div></li>
+        </ol>
+
+        <div class="tracking-detail-grid">
+          <div><span>填寫人</span><strong id="tracking-requester">—</strong></div>
+          <div><span>項目類別</span><strong id="tracking-category">—</strong></div>
+          <div><span>交付時間</span><strong id="tracking-due">—</strong></div>
+          <div><span>建立時間</span><strong id="tracking-created">—</strong></div>
+        </div>
+
+        <div class="tracking-notes" id="tracking-notes-wrap" hidden>
+          <span>原始備註</span>
+          <p id="tracking-notes"></p>
+        </div>
+
+        <section class="delivery-reply-card" id="delivery-reply-card">
+          <div class="reply-card-title">
+            <span aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M5 6.5h14v9H9l-4 3z" /></svg>
+            </span>
+            <div><p class="section-kicker">REPLY FROM JIA</p><h3>Jia 的交付回覆</h3></div>
+          </div>
+          <p id="tracking-reply">Jia 尚未提供交付回覆，更新後會顯示在這裡。</p>
+        </section>
+      </article>
+    </main>
+
+    <script src="./config.js"></script>
+    <script src="./data-store.js"></script>
+    <script src="./status.js"></script>
+  </body>
+</html>
