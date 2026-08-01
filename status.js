@@ -72,7 +72,7 @@
     setText("#tracking-notes", item.notes);
 
     const reply = document.querySelector("#tracking-reply");
-    reply.textContent = item.deliveryReply || "Jia 尚未提供交付回覆，更新後會顯示在這裡。";
+    reply.textContent = item.deliveryReply || "拍謝還來不及回Q_Q更新後會顯示在這裡!!!";
     reply.classList.toggle("is-empty", !item.deliveryReply);
     updateProgress(item.status);
   }
