@@ -99,7 +99,7 @@
                   type="text"
                   autocomplete="name"
                   maxlength="40"
-                  placeholder="請輸入姓名或部門＋姓名"
+                  placeholder="後續可以用這個追蹤請都用同一個名字"
                   required
                 />
               </div>
@@ -133,7 +133,7 @@
                 name="title"
                 type="text"
                 maxlength="120"
-                placeholder="請用一句話說明這項任務"
+                placeholder="簡單一句話"
                 required
               />
             </div>
@@ -147,7 +147,7 @@
               name="description"
               rows="5"
               maxlength="800"
-              placeholder="請描述希望 Jia 協助的內容、工作目標、預期成果或相關規格⋯"
+              placeholder="請盡量詳細描述內容或相關規格⋯"
               required
             ></textarea>
             <div class="field-meta">
@@ -188,7 +188,7 @@
               name="notes"
               rows="3"
               maxlength="500"
-              placeholder="可補充參考連結、協作對象、急件原因；如在 LINE 上有紀錄也可以備註給我～"
+              placeholder="可補充參考連結、其他想說的話、急件原因等"
             ></textarea>
             <p class="field-hint notes-hint">如在 LINE 上有紀錄，也可以備註給我～</p>
             <div class="field-meta align-right"><span id="notes-count">0 / 500</span></div>
@@ -201,7 +201,7 @@
             </svg>
           </button>
 
-          <p class="submit-note">送出前，請再次確認交付日期與給 Jia 的工作說明。</p>
+          <p class="submit-note">送出前，請再次確認交付日期與工作說明。</p>
         </form>
 
         <div class="success-panel" id="success-panel" hidden tabindex="-1">
@@ -209,9 +209,9 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6.5 12.5 3.5 3.5 7.5-8" /></svg>
           </span>
           <p class="section-kicker">TASK SENT TO JIA</p>
-          <h2>任務已交給 Jia！</h2>
+          <h2>任務已交給++ㄌ！</h2>
           <p>Jia 已收到這項協作需求，並會依交付日期安排處理順序。</p>
-          <div class="request-number">Jia 任務編號 <strong id="success-id">—</strong></div>
+          <div class="request-number"> 任務編號 <strong id="success-id">—</strong></div>
           <div class="success-actions">
             <button class="secondary-button" type="button" id="copy-request-id-button">複製任務編號</button>
             <a class="primary-button success-track-button" id="track-request-link" href="./status.html">追蹤這個任務</a>
