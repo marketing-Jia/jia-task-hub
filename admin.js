@@ -45,25 +45,40 @@
     return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
   }
 
-  function getScheduleStatus(item) {
-    const due = new Date(item.deliveryTime);
-    const now = new Date();
-    if (item.deliveryOption === "other" || Number.isNaN(due.getTime())) return "unscheduled";
-    if (dateKey(due) === dateKey(now)) return "today";
-    if (due < now) return "overdue";
-    const sevenDays = new Date(now);
-    sevenDays.setDate(sevenDays.getDate() + 7);
-    return due <= sevenDays ? "upcoming" : "later";
+  function getPlanningDate(item) {
+    const value = item.deliveryOption === "other" ? item.internalScheduleTime : item.deliveryTime;
+    return new Date(value);
   }
 
-  function formatDue(value, deliveryOption) {
-    if (deliveryOption === "other") return { date: "其他", time: "待確認" };
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return { date: "其他", time: "待確認" };
+  function getScheduleStatus(item) {
+    const due = getPlanningDate(item);
+    const now = new Date();
+    if (Number.isNaN(due.getTime())) return "unscheduled";
+    if (dateKey(due) === dateKey(now)) return "today";
+    const dueDate = new Date(due.getFullYear(), due.getMonth(), due.getDate());
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (dueDate < today) return "overdue";
+    const sevenDays = new Date(today);
+    sevenDays.setDate(sevenDays.getDate() + 7);
+    return dueDate <= sevenDays ? "upcoming" : "later";
+  }
+
+  function formatDue(item) {
+    const date = getPlanningDate(item);
+    if (Number.isNaN(date.getTime())) return { date: "其他／待確認", source: "尚未安排" };
     return {
-      date: new Intl.DateTimeFormat("zh-TW", { month: "2-digit", day: "2-digit", weekday: "short" }).format(date),
-      time: new Intl.DateTimeFormat("zh-TW", { hour: "2-digit", minute: "2-digit", hour12: false }).format(date),
+      date: new Intl.DateTimeFormat("zh-TW", { year: "numeric", month: "2-digit", day: "2-digit", weekday: "short" }).format(date),
+      source: item.deliveryOption === "other" ? "內部排程" : "交付日期",
     };
+  }
+
+  function toDateInput(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   }
 
   function statusLabel(status) {
@@ -90,10 +105,10 @@
           .includes(query);
       })
       .sort((a, b) => {
-        const firstTime = new Date(a.deliveryTime).getTime();
-        const secondTime = new Date(b.deliveryTime).getTime();
-        const firstUnscheduled = a.deliveryOption === "other" || Number.isNaN(firstTime);
-        const secondUnscheduled = b.deliveryOption === "other" || Number.isNaN(secondTime);
+        const firstTime = getPlanningDate(a).getTime();
+        const secondTime = getPlanningDate(b).getTime();
+        const firstUnscheduled = Number.isNaN(firstTime);
+        const secondUnscheduled = Number.isNaN(secondTime);
         if (firstUnscheduled !== secondUnscheduled) return firstUnscheduled ? 1 : -1;
         const first = firstUnscheduled ? 0 : firstTime;
         const second = secondUnscheduled ? 0 : secondTime;
@@ -102,9 +117,9 @@
   }
 
   function dueHTML(item) {
-    const due = formatDue(item.deliveryTime, item.deliveryOption);
+    const due = formatDue(item);
     const status = getScheduleStatus(item);
-    return `<div class="due-cell"><strong>${escapeHTML(due.date)}</strong><span>${escapeHTML(due.time)}</span><em class="due-status ${status}">${statusLabel(status)}</em></div>`;
+    return `<div class="due-cell"><strong>${escapeHTML(due.date)}</strong><span>${escapeHTML(due.source)}</span><em class="due-status ${status}">${statusLabel(status)}</em></div>`;
   }
 
   function renderTable(items) {
@@ -125,7 +140,7 @@
   function renderMobile(items) {
     mobileList.innerHTML = items
       .map((item) => {
-        const due = formatDue(item.deliveryTime, item.deliveryOption);
+        const due = formatDue(item);
         const status = getScheduleStatus(item);
         return `<article class="mobile-request-card">
           <div class="mobile-card-top">
@@ -134,7 +149,7 @@
           </div>
           <h3>${escapeHTML(item.title)}</h3>
           <div class="mobile-card-meta">
-            <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.75 4v3M17.25 4v3M4.75 9h14.5M6.25 5.75h11.5a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5H6.25a1.5 1.5 0 0 1-1.5-1.5v-11a1.5 1.5 0 0 1 1.5-1.5Z" /></svg>${escapeHTML(due.date)} ${escapeHTML(due.time)}</span>
+            <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.75 4v3M17.25 4v3M4.75 9h14.5M6.25 5.75h11.5a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5H6.25a1.5 1.5 0 0 1-1.5-1.5v-11a1.5 1.5 0 0 1 1.5-1.5Z" /></svg>${escapeHTML(due.source)}：${escapeHTML(due.date)}</span>
             <span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.25" /><path d="M5.75 19c.55-3.15 2.64-5 6.25-5s5.7 1.85 6.25 5" /></svg>${escapeHTML(item.requester)}</span>
           </div>
           ${item.description ? `<p class="mobile-card-notes">${escapeHTML(item.description)}</p>` : ""}
@@ -210,6 +225,10 @@
     document.querySelector("#modal-task-description").textContent = item.description;
     document.querySelector("#modal-task-requester").textContent = `${item.requester}・${item.category}`;
     document.querySelector("#modal-task-status").value = item.status;
+    const internalScheduleGroup = document.querySelector("#modal-internal-schedule-group");
+    const internalScheduleInput = document.querySelector("#modal-internal-schedule-time");
+    internalScheduleGroup.hidden = item.deliveryOption !== "other";
+    internalScheduleInput.value = item.deliveryOption === "other" ? toDateInput(item.internalScheduleTime) : "";
     document.querySelector("#modal-delivery-reply").value = item.deliveryReply || "";
     document.querySelector("#reply-count").textContent = `${(item.deliveryReply || "").length} / 2000`;
     document.querySelector("#modal-tracking-link").href = `./status.html?id=${encodeURIComponent(item.id)}`;
@@ -227,22 +246,24 @@
     event.preventDefault();
     const id = document.querySelector("#modal-request-id").value;
     const status = document.querySelector("#modal-task-status").value;
+    const internalScheduleValue = document.querySelector("#modal-internal-schedule-time").value;
+    const internalScheduleTime = internalScheduleValue ? new Date(`${internalScheduleValue}T00:00:00`).toISOString() : "";
     const deliveryReply = document.querySelector("#modal-delivery-reply").value.trim();
     const button = document.querySelector("#save-task-button");
     button.disabled = true;
     button.textContent = "儲存中…";
     try {
-      const updated = await RequestStore.updateRequest(id, { status, deliveryReply });
+      const updated = await RequestStore.updateRequest(id, { status, deliveryReply, internalScheduleTime });
       const index = state.items.findIndex((item) => item.id === id);
       if (index >= 0) state.items[index] = updated;
       render();
       closeTaskModal();
-      showToast("任務進度與回覆已更新。", "success");
+      showToast("任務排程、進度與回覆已更新。", "success");
     } catch (error) {
       showToast(error.message || "無法更新任務，請稍後再試。");
     } finally {
       button.disabled = false;
-      button.textContent = "儲存進度與回覆";
+      button.textContent = "儲存排程、進度與回覆";
     }
   }
 
@@ -266,7 +287,7 @@
     state.direction = state.direction === "asc" ? "desc" : "asc";
     const button = event.currentTarget;
     button.dataset.direction = state.direction;
-    document.querySelector("#sort-label").textContent = state.direction === "asc" ? "交付時間：近到遠" : "交付時間：遠到近";
+    document.querySelector("#sort-label").textContent = state.direction === "asc" ? "排程日期：近到遠" : "排程日期：遠到近";
     render();
   });
   document.querySelector("#refresh-button").addEventListener("click", loadData);

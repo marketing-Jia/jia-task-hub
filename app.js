@@ -16,8 +16,10 @@
 
   function setMinimumDeliveryTime() {
     const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset() + 30);
-    deliveryTime.min = now.toISOString().slice(0, 16);
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    deliveryTime.min = `${year}-${month}-${day}`;
   }
 
   function updateCount(input, targetId, max) {
@@ -84,10 +86,10 @@
       valid = false;
     }
     if (data.deliveryOption !== "other" && !data.deliveryTime) {
-      setError("deliveryTime", "請選擇交付時間。");
+      setError("deliveryTime", "請選擇交付日期。");
       valid = false;
-    } else if (data.deliveryOption !== "other" && new Date(data.deliveryTime).getTime() <= Date.now()) {
-      setError("deliveryTime", "交付時間需晚於目前時間。");
+    } else if (data.deliveryOption !== "other" && new Date(`${data.deliveryTime}T23:59:59`).getTime() < Date.now()) {
+      setError("deliveryTime", "交付日期不可早於今天。");
       valid = false;
     }
     return valid;
@@ -109,7 +111,7 @@
       title: String(values.get("title") || "").trim(),
       description: String(values.get("description") || "").trim(),
       deliveryOption,
-      deliveryTime: deliveryOption === "other" ? "" : new Date(deliveryValue).toISOString(),
+      deliveryTime: deliveryOption === "other" ? "" : new Date(`${deliveryValue}T00:00:00`).toISOString(),
       notes: String(values.get("notes") || "").trim(),
     };
   }

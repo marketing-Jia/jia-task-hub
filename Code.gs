@@ -10,7 +10,9 @@
 
 const SHEET_NAME = '工作需求';
 const LEGACY_HEADERS = ['編號', '建立時間', '填寫人', '項目類別', '工作說明', '交付時間', '備註', '交付方式', '狀態', '交付回覆', '最後更新時間'];
-const HEADERS = ['編號', '建立時間', '填寫人', '項目類別', '工作標題', '工作說明', '交付時間', '備註', '交付方式', '狀態', '交付回覆', '最後更新時間'];
+const PREVIOUS_HEADERS = ['編號', '建立時間', '填寫人', '項目類別', '工作標題', '工作說明', '交付時間', '備註', '交付方式', '狀態', '交付回覆', '最後更新時間'];
+const TIME_HEADERS = ['編號', '建立時間', '填寫人', '項目類別', '工作標題', '工作說明', '交付時間', '備註', '交付方式', '狀態', '交付回覆', '最後更新時間', '內部排程日期'];
+const HEADERS = ['編號', '建立時間', '填寫人', '項目類別', '工作標題', '工作說明', '交付日期', '備註', '交付方式', '狀態', '交付回覆', '最後更新時間', '內部排程日期'];
 const CATEGORIES = ['行銷', '行政', '營運', '業務', '其他'];
 const WORK_STATUSES = ['待處理', '進行中', '已完成'];
 
@@ -42,7 +44,8 @@ function onEdit(e) {
   const firstColumn = range.getColumn();
   const lastColumn = range.getLastColumn();
   const editedStatusOrReply = firstColumn <= 11 && lastColumn >= 10;
-  if (!editedStatusOrReply) return;
+  const editedInternalSchedule = firstColumn <= 13 && lastColumn >= 13;
+  if (!editedStatusOrReply && !editedInternalSchedule) return;
 
   sheet.getRange(range.getRow(), 12, range.getNumRows(), 1).setValue(new Date());
 }
@@ -65,7 +68,7 @@ function doGet(e) {
       if (requester && normalizeSearch_(item.requester) !== normalizeSearch_(requester)) {
         return json_({ ok: false, error: '找不到符合任務編號與填寫人的任務，請確認後再試一次。' });
       }
-      return json_({ ok: true, item: item });
+      return json_({ ok: true, item: toPublicItem_(item) });
     }
 
     const lastRow = sheet.getLastRow();
@@ -91,10 +94,10 @@ function doGet(e) {
       .filter(function (row) { return row[0]; })
       .map(rowToItem_)
       .sort(function (a, b) {
-        const aTime = new Date(a.deliveryTime).getTime();
-        const bTime = new Date(b.deliveryTime).getTime();
-        const aSort = a.deliveryOption === 'other' || isNaN(aTime) ? Number.MAX_SAFE_INTEGER : aTime;
-        const bSort = b.deliveryOption === 'other' || isNaN(bTime) ? Number.MAX_SAFE_INTEGER : bTime;
+        const aTime = new Date(a.deliveryOption === 'other' ? a.internalScheduleTime : a.deliveryTime).getTime();
+        const bTime = new Date(b.deliveryOption === 'other' ? b.internalScheduleTime : b.deliveryTime).getTime();
+        const aSort = isNaN(aTime) ? Number.MAX_SAFE_INTEGER : aTime;
+        const bSort = isNaN(bTime) ? Number.MAX_SAFE_INTEGER : bTime;
         return aSort - bSort;
       });
 
@@ -115,13 +118,23 @@ function doPost(e) {
       const id = clean_(params.id, 40);
       const status = clean_(params.status, 20);
       const deliveryReply = clean_(params.deliveryReply, 2000);
+      const hasInternalScheduleTime = Object.prototype.hasOwnProperty.call(params, 'internalScheduleTime');
+      const internalScheduleText = clean_(params.internalScheduleTime, 40);
       if (!id) throw new Error('缺少任務編號。');
       if (WORK_STATUSES.indexOf(status) === -1) throw new Error('任務狀態不正確。');
 
       const row = findRequestRow_(sheet, id);
       if (!row) throw new Error('找不到此任務。');
       const updatedAt = new Date();
-      sheet.getRange(row, 10, 1, 3).setValues([[status, safeCell_(deliveryReply), updatedAt]]);
+      const currentValues = sheet.getRange(row, 1, 1, HEADERS.length).getValues()[0];
+      let internalScheduleTime = currentValues[12] || '';
+      if (hasInternalScheduleTime) {
+        internalScheduleTime = internalScheduleText ? new Date(internalScheduleText) : '';
+        if (internalScheduleText && isNaN(internalScheduleTime.getTime())) {
+          throw new Error('內部排程日期格式不正確。');
+        }
+      }
+      sheet.getRange(row, 10, 1, 4).setValues([[status, safeCell_(deliveryReply), updatedAt, internalScheduleTime]]);
       const item = rowToItem_(sheet.getRange(row, 1, 1, HEADERS.length).getValues()[0]);
       return json_({ ok: true, item: item });
     }
@@ -142,7 +155,7 @@ function doPost(e) {
     if (CATEGORIES.indexOf(category) === -1) throw new Error('項目類別不正確。');
     if (!title) throw new Error('請填寫工作標題。');
     if (!description) throw new Error('請填寫工作說明。');
-    if (deliveryOption === 'specified' && isNaN(deliveryTime.getTime())) throw new Error('交付時間格式不正確。');
+    if (deliveryOption === 'specified' && isNaN(deliveryTime.getTime())) throw new Error('交付日期格式不正確。');
 
     const sheet = getOrCreateSheet_();
     const createdAt = new Date();
@@ -156,10 +169,11 @@ function doPost(e) {
       safeCell_(description),
       deliveryTime || '',
       safeCell_(notes),
-      deliveryOption === 'other' ? '其他／待確認' : '指定時間',
+      deliveryOption === 'other' ? '其他／待確認' : '指定日期',
       '待處理',
       '',
       createdAt,
+      '',
     ]);
 
     const lastRow = sheet.getLastRow();
@@ -182,6 +196,7 @@ function doPost(e) {
         status: '待處理',
         deliveryReply: '',
         updatedAt: createdAt.toISOString(),
+        internalScheduleTime: '',
       },
     });
   } catch (error) {
@@ -211,6 +226,19 @@ function migrateHeaders_(sheet) {
   const isCurrent = HEADERS.every(function (header, index) { return currentHeaders[index] === header; });
   if (isCurrent) return;
 
+  const usesTimeHeader = TIME_HEADERS.every(function (header, index) { return currentHeaders[index] === header; });
+  if (usesTimeHeader) {
+    sheet.getRange(1, 7).setValue('交付日期');
+    return;
+  }
+
+  const isPrevious = PREVIOUS_HEADERS.every(function (header, index) { return currentHeaders[index] === header; });
+  if (isPrevious) {
+    sheet.getRange(1, 7).setValue('交付日期');
+    sheet.getRange(1, 13).setValue('內部排程日期');
+    return;
+  }
+
   if (lastRow <= 1 && currentHeaders.every(function (header) { return !header; })) {
     sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
     return;
@@ -220,13 +248,13 @@ function migrateHeaders_(sheet) {
     return currentHeaders[index] === header;
   });
   if (!hasLegacyPrefix) {
-    throw new Error('工作需求欄位結構不符，請勿調換前 12 欄；若需要協助，請先備份試算表。');
+    throw new Error('工作需求欄位結構不符，請勿調換前 13 欄；若需要協助，請先備份試算表。');
   }
 
   const existingRows = Math.max(lastRow - 1, 0);
   sheet.getRange(1, 8, 1, 4).setValues([LEGACY_HEADERS.slice(7)]);
   if (existingRows > 0) {
-    if (!currentHeaders[7]) sheet.getRange(2, 8, existingRows, 1).setValue('指定時間');
+    if (!currentHeaders[7]) sheet.getRange(2, 8, existingRows, 1).setValue('指定日期');
     if (!currentHeaders[8]) sheet.getRange(2, 9, existingRows, 1).setValue('待處理');
   }
 
@@ -247,13 +275,14 @@ function formatSheet_(sheet) {
     .setFontColor('#ffffff')
     .setFontWeight('bold');
   sheet.setFrozenRows(1);
-  [155, 145, 130, 90, 220, 360, 145, 300, 100, 100, 360, 145].forEach(function (width, index) {
+  [155, 145, 130, 90, 220, 360, 145, 300, 100, 100, 360, 145, 155].forEach(function (width, index) {
     sheet.setColumnWidth(index + 1, width);
   });
   sheet.getRange('B:B').setNumberFormat('yyyy/mm/dd hh:mm');
-  sheet.getRange('G:G').setNumberFormat('yyyy/mm/dd hh:mm');
+  sheet.getRange('G:G').setNumberFormat('yyyy/mm/dd');
   sheet.getRange('L:L').setNumberFormat('yyyy/mm/dd hh:mm');
-  sheet.getRange('A:L').setVerticalAlignment('middle').setWrap(true);
+  sheet.getRange('M:M').setNumberFormat('yyyy/mm/dd');
+  sheet.getRange('A:M').setVerticalAlignment('middle').setWrap(true);
 
   const statusRule = SpreadsheetApp.newDataValidation()
     .requireValueInList(WORK_STATUSES, true)
@@ -286,6 +315,24 @@ function rowToItem_(row) {
     status: WORK_STATUSES.indexOf(String(row[9] || '')) >= 0 ? String(row[9]) : '待處理',
     deliveryReply: String(row[10] || ''),
     updatedAt: toIso_(row[11] || row[1]),
+    internalScheduleTime: toIso_(row[12]),
+  };
+}
+
+function toPublicItem_(item) {
+  return {
+    id: item.id,
+    createdAt: item.createdAt,
+    requester: item.requester,
+    category: item.category,
+    title: item.title,
+    description: item.description,
+    deliveryTime: item.deliveryTime,
+    notes: item.notes,
+    deliveryOption: item.deliveryOption,
+    status: item.status,
+    deliveryReply: item.deliveryReply,
+    updatedAt: item.updatedAt,
   };
 }
 

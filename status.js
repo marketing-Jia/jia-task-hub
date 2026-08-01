@@ -26,7 +26,7 @@
 
   function formatDue(item) {
     if (item.deliveryOption === "other" || !item.deliveryTime) return "其他／待確認";
-    return formatDate(item.deliveryTime);
+    return formatDate(item.deliveryTime, false);
   }
 
   function setText(selector, value) {

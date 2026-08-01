@@ -64,7 +64,7 @@
   }
 
   function normalizeItem(item) {
-    const deliveryTime = String(item.deliveryTime || item["交付時間"] || "");
+    const deliveryTime = String(item.deliveryTime || item["交付日期"] || item["交付時間"] || "");
     const rawDeliveryOption = String(item.deliveryOption || item["交付方式"] || (deliveryTime ? "specified" : "other"));
     return {
       id: String(item.id || item["編號"] || ""),
@@ -81,6 +81,7 @@
         : "待處理",
       deliveryReply: String(item.deliveryReply || item["交付回覆"] || ""),
       updatedAt: String(item.updatedAt || item["最後更新時間"] || item.createdAt || item["建立時間"] || ""),
+      internalScheduleTime: String(item.internalScheduleTime || item["內部排程日期"] || item["內部排程時間"] || ""),
     };
   }
 
@@ -215,6 +216,8 @@
     const requestId = String(id || "").trim();
     const status = String(changes.status || "");
     const deliveryReply = String(changes.deliveryReply || "").trim();
+    const hasInternalScheduleTime = Object.prototype.hasOwnProperty.call(changes, "internalScheduleTime");
+    const internalScheduleTime = hasInternalScheduleTime ? String(changes.internalScheduleTime || "").trim() : "";
     if (!requestId) throw new Error("缺少任務編號。");
     if (!WORK_STATUSES.includes(status)) throw new Error("任務狀態不正確。");
 
@@ -226,6 +229,7 @@
         ...items[index],
         status,
         deliveryReply,
+        ...(hasInternalScheduleTime ? { internalScheduleTime } : {}),
         updatedAt: new Date().toISOString(),
       });
       writeLocal(items);
@@ -239,6 +243,7 @@
       status,
       deliveryReply,
     });
+    if (hasInternalScheduleTime) body.set("internalScheduleTime", internalScheduleTime);
     const response = await fetch(getConfig().API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },

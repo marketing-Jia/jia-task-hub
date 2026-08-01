@@ -59,7 +59,7 @@
           </li>
           <li>
             <span>02</span>
-            <div><strong>Jia 確認排程</strong><small>依交付時間安排優先序</small></div>
+            <div><strong>Jia 確認排程</strong><small>依交付日期安排優先序</small></div>
           </li>
           <li>
             <span>03</span>
@@ -133,7 +133,7 @@
                 name="title"
                 type="text"
                 maxlength="120"
-                placeholder="一句話說明即可"
+                placeholder="請用一句話說明這項任務"
                 required
               />
             </div>
@@ -147,7 +147,7 @@
               name="description"
               rows="5"
               maxlength="800"
-              placeholder="請盡量詳細描述內容、工作目標、預期成果或相關規格⋯"
+              placeholder="請描述希望 Jia 協助的內容、工作目標、預期成果或相關規格⋯"
               required
             ></textarea>
             <div class="field-meta">
@@ -157,11 +157,11 @@
           </div>
 
           <div class="field-group">
-            <label for="delivery-time">交付時間 <span aria-label="必填">＊</span></label>
-            <div class="delivery-options" role="radiogroup" aria-label="交付時間選項">
+            <label for="delivery-time">交付日期 <span aria-label="必填">＊</span></label>
+            <div class="delivery-options" role="radiogroup" aria-label="交付日期選項">
               <label>
                 <input type="radio" name="deliveryOption" value="specified" checked />
-                <span>指定日期時間</span>
+                <span>指定日期</span>
               </label>
               <label>
                 <input type="radio" name="deliveryOption" value="other" />
@@ -172,12 +172,12 @@
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M6.75 4v3M17.25 4v3M4.75 9h14.5M6.25 5.75h11.5a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5H6.25a1.5 1.5 0 0 1-1.5-1.5v-11a1.5 1.5 0 0 1 1.5-1.5Z" />
               </svg>
-              <input id="delivery-time" name="deliveryTime" type="datetime-local" required />
+              <input id="delivery-time" name="deliveryTime" type="date" required />
             </div>
             <div class="other-time-message" id="other-time-message" hidden>
               這筆任務會先標記為「待確認」，可在備註補充希望的時程。
             </div>
-            <p class="field-hint" id="delivery-time-hint">請預留合理作業時間；若為急件，可於備註說明原因。</p>
+            <p class="field-hint" id="delivery-time-hint">請選擇期望交付日期；若為急件，可於備註說明原因。</p>
             <p class="field-error" id="deliveryTime-error"></p>
           </div>
 
@@ -188,7 +188,7 @@
               name="notes"
               rows="3"
               maxlength="500"
-              placeholder="可補充參考連結、協作對象、急件原因"
+              placeholder="可補充參考連結、協作對象、急件原因；如在 LINE 上有紀錄也可以備註給我～"
             ></textarea>
             <p class="field-hint notes-hint">如在 LINE 上有紀錄，也可以備註給我～</p>
             <div class="field-meta align-right"><span id="notes-count">0 / 500</span></div>
@@ -201,7 +201,7 @@
             </svg>
           </button>
 
-          <p class="submit-note">送出前，請再次確認交付時間與給 Jia 的工作說明。</p>
+          <p class="submit-note">送出前，請再次確認交付日期與給 Jia 的工作說明。</p>
         </form>
 
         <div class="success-panel" id="success-panel" hidden tabindex="-1">
@@ -210,7 +210,7 @@
           </span>
           <p class="section-kicker">TASK SENT TO JIA</p>
           <h2>任務已交給 Jia！</h2>
-          <p>Jia 已收到這項協作需求，並會依交付時間安排處理順序。</p>
+          <p>Jia 已收到這項協作需求，並會依交付日期安排處理順序。</p>
           <div class="request-number">Jia 任務編號 <strong id="success-id">—</strong></div>
           <div class="success-actions">
             <button class="secondary-button" type="button" id="copy-request-id-button">複製任務編號</button>

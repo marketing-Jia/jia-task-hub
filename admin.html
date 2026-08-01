@@ -59,7 +59,7 @@
         <div>
           <p class="section-kicker">JIA'S WORK DASHBOARD</p>
           <h1>Jia 的獨立任務看板</h1>
-          <p>依交付時間掌握 Jia 的任務優先順序與近期工作量。</p>
+          <p>依交付日期與內部排程日期掌握 Jia 的任務優先順序與近期工作量。</p>
         </div>
         <div class="dashboard-actions">
           <span class="last-updated" id="last-updated">尚未更新</span>
@@ -137,7 +137,7 @@
             </label>
             <button class="sort-button" id="sort-button" type="button" data-direction="asc">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M5 8l3-3 3 3M16 19V5M13 16l3 3 3-3" /></svg>
-              <span id="sort-label">交付時間：近到遠</span>
+              <span id="sort-label">排程日期：近到遠</span>
             </button>
           </div>
         </div>
@@ -146,7 +146,7 @@
           <table>
             <thead>
               <tr>
-                <th>交付時間</th>
+                <th>交付／內部排程日期</th>
                 <th>任務狀態</th>
                 <th>類別</th>
                 <th>工作標題／說明</th>
@@ -201,6 +201,13 @@
               </select>
             </div>
           </div>
+          <div class="field-group" id="modal-internal-schedule-group">
+            <label for="modal-internal-schedule-time">內部排程日期 <small>僅 Jia 任務看板與 Google Sheet 顯示</small></label>
+            <div class="input-shell no-icon">
+              <input id="modal-internal-schedule-time" name="internalScheduleTime" type="date" />
+            </div>
+            <p class="field-hint">前台選擇「其他／待確認」時，可在這裡安排預計處理日期；發任務人不會看到。</p>
+          </div>
           <div class="field-group">
             <label for="modal-delivery-reply">交付回覆 <small>發任務的人會在追蹤頁看到</small></label>
             <textarea id="modal-delivery-reply" name="deliveryReply" rows="7" maxlength="2000" placeholder="可填寫完成內容、交付連結、檔案位置或需要對方確認的事項⋯"></textarea>
@@ -208,7 +215,7 @@
           </div>
           <div class="modal-actions">
             <a class="secondary-button" id="modal-tracking-link" href="./status.html" target="_blank" rel="noopener">開啟追蹤頁</a>
-            <button class="primary-button" id="save-task-button" type="submit">儲存進度與回覆</button>
+            <button class="primary-button" id="save-task-button" type="submit">儲存排程、進度與回覆</button>
           </div>
         </form>
       </section>
