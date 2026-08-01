@@ -82,9 +82,6 @@
     if (!data.description) {
       setError("description", "請填寫工作說明。");
       valid = false;
-    } else if (data.description.length < 8) {
-      setError("description", "請至少輸入 8 個字，讓需求更清楚。");
-      valid = false;
     }
     if (data.deliveryOption !== "other" && !data.deliveryTime) {
       setError("deliveryTime", "請選擇交付時間。");
@@ -134,8 +131,33 @@
     form.hidden = true;
     successPanel.hidden = false;
     document.querySelector("#success-id").textContent = item.id || "已建立";
+    document.querySelector("#copy-request-id-button").dataset.requestId = item.id || "";
     document.querySelector("#track-request-link").href = `./status.html?id=${encodeURIComponent(item.id || "")}`;
     successPanel.focus();
+  }
+
+  async function copyRequestId() {
+    const button = document.querySelector("#copy-request-id-button");
+    const requestId = String(button.dataset.requestId || "");
+    if (!requestId) return;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(requestId);
+      } else {
+        const helper = document.createElement("textarea");
+        helper.value = requestId;
+        helper.setAttribute("readonly", "");
+        helper.style.position = "fixed";
+        helper.style.opacity = "0";
+        document.body.appendChild(helper);
+        helper.select();
+        document.execCommand("copy");
+        helper.remove();
+      }
+      showToast("任務編號已複製。", "success");
+    } catch (error) {
+      showToast("無法自動複製，請長按任務編號手動複製。");
+    }
   }
 
   function resetForm() {
@@ -187,4 +209,5 @@
   });
 
   document.querySelector("#new-request-button").addEventListener("click", resetForm);
+  document.querySelector("#copy-request-id-button").addEventListener("click", copyRequestId);
 })();

@@ -37,20 +37,20 @@
       <section class="tracking-intro">
         <p class="section-kicker">TASK TRACKING</p>
         <h1>追蹤給 Jia 的任務</h1>
-        <p>輸入任務編號，即可查看處理狀態與 Jia 的交付回覆；也可選填填寫人協助確認。</p>
+        <p>輸入任務編號即可查詢；若忘記編號，也可以只輸入填寫人找回近期任務。</p>
       </section>
 
       <form class="tracking-search" id="tracking-search-form">
         <div class="tracking-search-fields">
           <label class="tracking-query-field" for="tracking-id">
-            <span>任務編號</span>
+            <span>任務編號 <small>選填</small></span>
             <span class="tracking-input-shell">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.75" /><path d="m15 15 4 4" /></svg>
-              <input id="tracking-id" name="id" type="text" autocomplete="off" placeholder="例如 REQ-20260801-AB12CD34" required />
+              <input id="tracking-id" name="id" type="text" autocomplete="off" placeholder="例如 REQ-20260801-AB12CD34" />
             </span>
           </label>
           <label class="tracking-query-field" for="tracking-requester-search">
-            <span>填寫人 <small>選填</small></span>
+            <span>填寫人 <small>忘記編號時必填</small></span>
             <span class="tracking-input-shell requester-search-shell">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.25" /><path d="M5.75 19c.55-3.15 2.64-5 6.25-5s5.7 1.85 6.25 5" /></svg>
               <input id="tracking-requester-search" name="requester" type="text" autocomplete="name" maxlength="40" placeholder="姓名或部門＋姓名" />
@@ -58,7 +58,7 @@
           </label>
           <button class="primary-button" type="submit" id="tracking-submit">查詢任務</button>
         </div>
-        <p>任務編號可在送出成功畫面中找到；填寫人為選填，填入時需與原任務一致。</p>
+        <p>至少填寫一項。找回任務時，請輸入與送出表單完全相同的「填寫人」內容。</p>
       </form>
 
       <section class="recent-requests" id="recent-requests" hidden>
@@ -67,6 +67,14 @@
           <span>點選編號即可查詢</span>
         </div>
         <div class="recent-id-list" id="recent-id-list"></div>
+      </section>
+
+      <section class="recent-requests requester-results" id="requester-results" hidden>
+        <div class="tracking-section-head">
+          <h2 id="requester-results-title">近期任務</h2>
+          <span id="requester-results-count">共 0 筆</span>
+        </div>
+        <div class="requester-task-list" id="requester-task-list"></div>
       </section>
 
       <div class="tracking-loading" id="tracking-loading" hidden>

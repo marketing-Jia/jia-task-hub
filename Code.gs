@@ -29,10 +29,28 @@ function setupSpreadsheet() {
   return '設定完成：' + spreadsheet.getName();
 }
 
+/**
+ * 在 Google Sheets 直接修改任務狀態或交付回覆時，自動更新最後更新時間。
+ * 此函式為綁定試算表的簡易觸發條件，不需要另外建立觸發器。
+ */
+function onEdit(e) {
+  if (!e || !e.range) return;
+  const range = e.range;
+  const sheet = range.getSheet();
+  if (sheet.getName() !== SHEET_NAME || range.getRow() < 2) return;
+
+  const firstColumn = range.getColumn();
+  const lastColumn = range.getLastColumn();
+  const editedStatusOrReply = firstColumn <= 11 && lastColumn >= 10;
+  if (!editedStatusOrReply) return;
+
+  sheet.getRange(range.getRow(), 12, range.getNumRows(), 1).setValue(new Date());
+}
+
 function doGet(e) {
   try {
     const action = String((e && e.parameter && e.parameter.action) || 'list');
-    if (action !== 'list' && action !== 'get') {
+    if (action !== 'list' && action !== 'get' && action !== 'findByRequester') {
       return json_({ ok: false, error: '不支援的操作。' });
     }
 
@@ -56,6 +74,19 @@ function doGet(e) {
     }
 
     const values = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
+    if (action === 'findByRequester') {
+      const requester = clean_(e && e.parameter && e.parameter.requester, 40);
+      if (!requester) return json_({ ok: false, error: '請提供填寫人。' });
+      const requesterItems = values
+        .filter(function (row) { return row[0]; })
+        .map(rowToItem_)
+        .filter(function (item) { return normalizeSearch_(item.requester) === normalizeSearch_(requester); })
+        .sort(function (a, b) { return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); })
+        .slice(0, 10)
+        .map(toRequesterSummary_);
+      return json_({ ok: true, items: requesterItems });
+    }
+
     const items = values
       .filter(function (row) { return row[0]; })
       .map(rowToItem_)
@@ -223,6 +254,14 @@ function formatSheet_(sheet) {
   sheet.getRange('G:G').setNumberFormat('yyyy/mm/dd hh:mm');
   sheet.getRange('L:L').setNumberFormat('yyyy/mm/dd hh:mm');
   sheet.getRange('A:L').setVerticalAlignment('middle').setWrap(true);
+
+  const statusRule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(WORK_STATUSES, true)
+    .setAllowInvalid(false)
+    .setHelpText('請選擇：待處理、進行中或已完成')
+    .build();
+  const statusRows = Math.max(sheet.getMaxRows() - 1, 1);
+  sheet.getRange(2, 10, statusRows, 1).setDataValidation(statusRule);
 }
 
 function getConfiguredSpreadsheet_() {
@@ -247,6 +286,20 @@ function rowToItem_(row) {
     status: WORK_STATUSES.indexOf(String(row[9] || '')) >= 0 ? String(row[9]) : '待處理',
     deliveryReply: String(row[10] || ''),
     updatedAt: toIso_(row[11] || row[1]),
+  };
+}
+
+function toRequesterSummary_(item) {
+  return {
+    id: item.id,
+    createdAt: item.createdAt,
+    requester: item.requester,
+    category: item.category,
+    title: item.title,
+    deliveryTime: item.deliveryTime,
+    deliveryOption: item.deliveryOption,
+    status: item.status,
+    updatedAt: item.updatedAt,
   };
 }
 

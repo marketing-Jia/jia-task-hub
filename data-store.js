@@ -188,6 +188,29 @@
     return item;
   }
 
+  async function findRequestsByRequester(requester) {
+    const requesterName = String(requester || "").trim();
+    if (!requesterName) throw new Error("請輸入填寫人。");
+
+    if (!isRemoteMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 180));
+      return readLocal()
+        .map(normalizeItem)
+        .filter((item) => item.requester.toLocaleLowerCase("zh-Hant") === requesterName.toLocaleLowerCase("zh-Hant"))
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 10);
+    }
+
+    const url = new URL(getConfig().API_URL);
+    url.searchParams.set("action", "findByRequester");
+    url.searchParams.set("requester", requesterName);
+    url.searchParams.set("_", Date.now().toString());
+    const response = await fetch(url.toString(), { method: "GET", redirect: "follow" });
+    const payload = await parseResponse(response);
+    const items = payload.items || payload.data || [];
+    return Array.isArray(items) ? items.map(normalizeItem) : [];
+  }
+
   async function updateRequest(id, changes) {
     const requestId = String(id || "").trim();
     const status = String(changes.status || "");
@@ -230,6 +253,7 @@
     createRequest,
     listRequests,
     getRequest,
+    findRequestsByRequester,
     updateRequest,
     getTrackedRequestIds,
     getMode,
