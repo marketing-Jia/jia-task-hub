@@ -72,6 +72,13 @@
       setError("category", "請選擇項目類別。");
       valid = false;
     }
+    if (!data.title) {
+      setError("title", "請填寫工作標題。");
+      valid = false;
+    } else if (data.title.length < 2) {
+      setError("title", "工作標題請至少輸入 2 個字。");
+      valid = false;
+    }
     if (!data.description) {
       setError("description", "請填寫工作說明。");
       valid = false;
@@ -102,6 +109,7 @@
     return {
       requester: String(values.get("requester") || "").trim(),
       category: String(values.get("category") || "").trim(),
+      title: String(values.get("title") || "").trim(),
       description: String(values.get("description") || "").trim(),
       deliveryOption,
       deliveryTime: deliveryOption === "other" ? "" : new Date(deliveryValue).toISOString(),
@@ -114,6 +122,7 @@
     return {
       requester: String(values.get("requester") || "").trim(),
       category: String(values.get("category") || "").trim(),
+      title: String(values.get("title") || "").trim(),
       description: String(values.get("description") || "").trim(),
       deliveryOption: String(values.get("deliveryOption") || "specified"),
       deliveryTime: String(deliveryTime.value || ""),

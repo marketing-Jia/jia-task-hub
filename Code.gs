@@ -9,7 +9,8 @@
  */
 
 const SHEET_NAME = '工作需求';
-const HEADERS = ['編號', '建立時間', '填寫人', '項目類別', '工作說明', '交付時間', '備註', '交付方式', '狀態', '交付回覆', '最後更新時間'];
+const LEGACY_HEADERS = ['編號', '建立時間', '填寫人', '項目類別', '工作說明', '交付時間', '備註', '交付方式', '狀態', '交付回覆', '最後更新時間'];
+const HEADERS = ['編號', '建立時間', '填寫人', '項目類別', '工作標題', '工作說明', '交付時間', '備註', '交付方式', '狀態', '交付回覆', '最後更新時間'];
 const CATEGORIES = ['行銷', '行政', '營運', '業務', '其他'];
 const WORK_STATUSES = ['待處理', '進行中', '已完成'];
 
@@ -38,10 +39,14 @@ function doGet(e) {
     const sheet = getOrCreateSheet_();
     if (action === 'get') {
       const id = clean_(e && e.parameter && e.parameter.id, 40);
+      const requester = clean_(e && e.parameter && e.parameter.requester, 40);
       if (!id) return json_({ ok: false, error: '請提供任務編號。' });
       const row = findRequestRow_(sheet, id);
       if (!row) return json_({ ok: false, error: '找不到此任務，請確認編號是否正確。' });
       const item = rowToItem_(sheet.getRange(row, 1, 1, HEADERS.length).getValues()[0]);
+      if (requester && normalizeSearch_(item.requester) !== normalizeSearch_(requester)) {
+        return json_({ ok: false, error: '找不到符合任務編號與填寫人的任務，請確認後再試一次。' });
+      }
       return json_({ ok: true, item: item });
     }
 
@@ -85,7 +90,7 @@ function doPost(e) {
       const row = findRequestRow_(sheet, id);
       if (!row) throw new Error('找不到此任務。');
       const updatedAt = new Date();
-      sheet.getRange(row, 9, 1, 3).setValues([[status, safeCell_(deliveryReply), updatedAt]]);
+      sheet.getRange(row, 10, 1, 3).setValues([[status, safeCell_(deliveryReply), updatedAt]]);
       const item = rowToItem_(sheet.getRange(row, 1, 1, HEADERS.length).getValues()[0]);
       return json_({ ok: true, item: item });
     }
@@ -96,6 +101,7 @@ function doPost(e) {
 
     const requester = clean_(params.requester, 40);
     const category = clean_(params.category, 10);
+    const title = clean_(params.title, 120);
     const description = clean_(params.description, 800);
     const notes = clean_(params.notes, 500);
     const deliveryOption = String(params.deliveryOption || 'specified') === 'other' ? 'other' : 'specified';
@@ -103,6 +109,7 @@ function doPost(e) {
 
     if (!requester) throw new Error('請填寫填寫人。');
     if (CATEGORIES.indexOf(category) === -1) throw new Error('項目類別不正確。');
+    if (!title) throw new Error('請填寫工作標題。');
     if (!description) throw new Error('請填寫工作說明。');
     if (deliveryOption === 'specified' && isNaN(deliveryTime.getTime())) throw new Error('交付時間格式不正確。');
 
@@ -114,6 +121,7 @@ function doPost(e) {
       createdAt,
       safeCell_(requester),
       category,
+      safeCell_(title),
       safeCell_(description),
       deliveryTime || '',
       safeCell_(notes),
@@ -125,7 +133,7 @@ function doPost(e) {
 
     const lastRow = sheet.getLastRow();
     if (lastRow > 2) {
-      sheet.getRange(2, 1, lastRow - 1, HEADERS.length).sort({ column: 6, ascending: true });
+      sheet.getRange(2, 1, lastRow - 1, HEADERS.length).sort({ column: 7, ascending: true });
     }
 
     return json_({
@@ -135,6 +143,7 @@ function doPost(e) {
         createdAt: createdAt.toISOString(),
         requester: requester,
         category: category,
+        title: title,
         description: description,
         deliveryTime: deliveryTime ? deliveryTime.toISOString() : '',
         deliveryOption: deliveryOption,
@@ -159,52 +168,61 @@ function getOrCreateSheet_() {
     sheet = spreadsheet.insertSheet(SHEET_NAME);
   }
 
-  const currentHeaders = sheet.getRange(1, 1, 1, HEADERS.length).getValues()[0];
-  const needsHeaders = HEADERS.some(function (header, index) {
-    return currentHeaders[index] !== header;
-  });
-
-  if (needsHeaders && sheet.getLastRow() <= 1) {
-    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
-    sheet.getRange(1, 1, 1, HEADERS.length)
-      .setBackground('#16342f')
-      .setFontColor('#ffffff')
-      .setFontWeight('bold');
-    sheet.setFrozenRows(1);
-    sheet.setColumnWidth(1, 155);
-    sheet.setColumnWidth(2, 145);
-    sheet.setColumnWidth(3, 130);
-    sheet.setColumnWidth(4, 90);
-    sheet.setColumnWidth(5, 360);
-    sheet.setColumnWidth(6, 145);
-    sheet.setColumnWidth(7, 300);
-    sheet.setColumnWidth(8, 100);
-    sheet.setColumnWidth(9, 100);
-    sheet.setColumnWidth(10, 360);
-    sheet.setColumnWidth(11, 145);
-    sheet.getRange('B:B').setNumberFormat('yyyy/mm/dd hh:mm');
-    sheet.getRange('F:F').setNumberFormat('yyyy/mm/dd hh:mm');
-    sheet.getRange('K:K').setNumberFormat('yyyy/mm/dd hh:mm');
-    sheet.getRange('A:K').setVerticalAlignment('middle').setWrap(true);
-  } else if (needsHeaders && currentHeaders.slice(0, 7).every(function (header, index) { return header === HEADERS[index]; })) {
-    const existingRows = Math.max(sheet.getLastRow() - 1, 0);
-    sheet.getRange(1, 8, 1, 4).setValues([HEADERS.slice(7)])
-      .setBackground('#16342f')
-      .setFontColor('#ffffff')
-      .setFontWeight('bold');
-    if (existingRows > 0) {
-      if (!currentHeaders[7]) sheet.getRange(2, 8, existingRows, 1).setValue('指定時間');
-      if (!currentHeaders[8]) sheet.getRange(2, 9, existingRows, 1).setValue('待處理');
-    }
-    sheet.setColumnWidth(8, 100);
-    sheet.setColumnWidth(9, 100);
-    sheet.setColumnWidth(10, 360);
-    sheet.setColumnWidth(11, 145);
-    sheet.getRange('K:K').setNumberFormat('yyyy/mm/dd hh:mm');
-    sheet.getRange('A:K').setVerticalAlignment('middle').setWrap(true);
-  }
+  migrateHeaders_(sheet);
+  formatSheet_(sheet);
 
   return sheet;
+}
+
+function migrateHeaders_(sheet) {
+  const lastRow = sheet.getLastRow();
+  const currentHeaders = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), HEADERS.length)).getValues()[0];
+  const isCurrent = HEADERS.every(function (header, index) { return currentHeaders[index] === header; });
+  if (isCurrent) return;
+
+  if (lastRow <= 1 && currentHeaders.every(function (header) { return !header; })) {
+    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+    return;
+  }
+
+  const hasLegacyPrefix = LEGACY_HEADERS.slice(0, 7).every(function (header, index) {
+    return currentHeaders[index] === header;
+  });
+  if (!hasLegacyPrefix) {
+    throw new Error('工作需求欄位結構不符，請勿調換前 12 欄；若需要協助，請先備份試算表。');
+  }
+
+  const existingRows = Math.max(lastRow - 1, 0);
+  sheet.getRange(1, 8, 1, 4).setValues([LEGACY_HEADERS.slice(7)]);
+  if (existingRows > 0) {
+    if (!currentHeaders[7]) sheet.getRange(2, 8, existingRows, 1).setValue('指定時間');
+    if (!currentHeaders[8]) sheet.getRange(2, 9, existingRows, 1).setValue('待處理');
+  }
+
+  sheet.insertColumnBefore(5);
+  sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+  if (existingRows > 0) {
+    const descriptions = sheet.getRange(2, 6, existingRows, 1).getDisplayValues();
+    const titles = descriptions.map(function (row) {
+      return [safeCell_(clean_(row[0], 120) || '既有任務')];
+    });
+    sheet.getRange(2, 5, existingRows, 1).setValues(titles);
+  }
+}
+
+function formatSheet_(sheet) {
+  sheet.getRange(1, 1, 1, HEADERS.length)
+    .setBackground('#16342f')
+    .setFontColor('#ffffff')
+    .setFontWeight('bold');
+  sheet.setFrozenRows(1);
+  [155, 145, 130, 90, 220, 360, 145, 300, 100, 100, 360, 145].forEach(function (width, index) {
+    sheet.setColumnWidth(index + 1, width);
+  });
+  sheet.getRange('B:B').setNumberFormat('yyyy/mm/dd hh:mm');
+  sheet.getRange('G:G').setNumberFormat('yyyy/mm/dd hh:mm');
+  sheet.getRange('L:L').setNumberFormat('yyyy/mm/dd hh:mm');
+  sheet.getRange('A:L').setVerticalAlignment('middle').setWrap(true);
 }
 
 function getConfiguredSpreadsheet_() {
@@ -221,13 +239,14 @@ function rowToItem_(row) {
     createdAt: toIso_(row[1]),
     requester: String(row[2] || ''),
     category: String(row[3] || '其他'),
-    description: String(row[4] || ''),
-    deliveryTime: toIso_(row[5]),
-    notes: String(row[6] || ''),
-    deliveryOption: row[7] === 'other' || row[7] === '其他／待確認' || (!row[7] && !row[5]) ? 'other' : 'specified',
-    status: WORK_STATUSES.indexOf(String(row[8] || '')) >= 0 ? String(row[8]) : '待處理',
-    deliveryReply: String(row[9] || ''),
-    updatedAt: toIso_(row[10] || row[1]),
+    title: String(row[4] || row[5] || ''),
+    description: String(row[5] || ''),
+    deliveryTime: toIso_(row[6]),
+    notes: String(row[7] || ''),
+    deliveryOption: row[8] === 'other' || row[8] === '其他／待確認' || (!row[8] && !row[6]) ? 'other' : 'specified',
+    status: WORK_STATUSES.indexOf(String(row[9] || '')) >= 0 ? String(row[9]) : '待處理',
+    deliveryReply: String(row[10] || ''),
+    updatedAt: toIso_(row[11] || row[1]),
   };
 }
 
@@ -255,6 +274,10 @@ function makeRequestId_(date) {
 
 function clean_(value, maxLength) {
   return String(value || '').trim().slice(0, maxLength);
+}
+
+function normalizeSearch_(value) {
+  return String(value || '').trim().toLowerCase();
 }
 
 function safeCell_(value) {

@@ -84,7 +84,7 @@
       .filter((item) => state.workStatus === "all" || item.status === state.workStatus)
       .filter((item) => {
         if (!query) return true;
-        return [item.requester, item.description, item.notes, item.id]
+        return [item.requester, item.title, item.description, item.notes, item.id]
           .join(" ")
           .toLocaleLowerCase("zh-Hant")
           .includes(query);
@@ -114,7 +114,7 @@
           <td>${dueHTML(item)}</td>
           <td><span class="work-status-badge ${workStatusClass(item.status)}">${escapeHTML(item.status)}</span></td>
           <td><span class="category-badge ${categoryClass[item.category] || "other"}">${escapeHTML(item.category)}</span></td>
-          <td><div class="description-cell"><strong>${escapeHTML(item.description)}</strong><small>${escapeHTML(item.createdAt ? `建立於 ${new Intl.DateTimeFormat("zh-TW", { month: "2-digit", day: "2-digit" }).format(new Date(item.createdAt))}` : "")}</small></div></td>
+          <td><div class="description-cell"><strong>${escapeHTML(item.title)}</strong><small>${escapeHTML(item.description)}</small></div></td>
           <td><span class="requester-cell">${escapeHTML(item.requester)}</span></td>
           <td><span class="notes-cell" title="${escapeHTML(item.notes)}">${escapeHTML(item.notes || "—")}</span></td>
           <td><div class="task-actions-cell"><code>${escapeHTML(item.id || "—")}</code><button type="button" data-manage-task="${escapeHTML(item.id)}">處理／回覆</button></div></td>
@@ -132,12 +132,13 @@
             <div class="mobile-card-statuses"><span class="category-badge ${categoryClass[item.category] || "other"}">${escapeHTML(item.category)}</span><span class="work-status-badge ${workStatusClass(item.status)}">${escapeHTML(item.status)}</span></div>
             <em class="due-status ${status}">${statusLabel(status)}</em>
           </div>
-          <h3>${escapeHTML(item.description)}</h3>
+          <h3>${escapeHTML(item.title)}</h3>
           <div class="mobile-card-meta">
             <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.75 4v3M17.25 4v3M4.75 9h14.5M6.25 5.75h11.5a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5H6.25a1.5 1.5 0 0 1-1.5-1.5v-11a1.5 1.5 0 0 1 1.5-1.5Z" /></svg>${escapeHTML(due.date)} ${escapeHTML(due.time)}</span>
             <span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.25" /><path d="M5.75 19c.55-3.15 2.64-5 6.25-5s5.7 1.85 6.25 5" /></svg>${escapeHTML(item.requester)}</span>
           </div>
-          ${item.notes ? `<p class="mobile-card-notes">${escapeHTML(item.notes)}</p>` : ""}
+          ${item.description ? `<p class="mobile-card-notes">${escapeHTML(item.description)}</p>` : ""}
+          ${item.notes ? `<p class="mobile-card-notes"><strong>備註：</strong>${escapeHTML(item.notes)}</p>` : ""}
           <div class="mobile-task-actions"><code>${escapeHTML(item.id || "—")}</code><button type="button" data-manage-task="${escapeHTML(item.id)}">處理／回覆</button></div>
         </article>`;
       })
@@ -205,6 +206,7 @@
     }
     document.querySelector("#modal-request-id").value = item.id;
     document.querySelector("#modal-task-id").textContent = item.id;
+    document.querySelector("#modal-task-title").textContent = item.title;
     document.querySelector("#modal-task-description").textContent = item.description;
     document.querySelector("#modal-task-requester").textContent = `${item.requester}・${item.category}`;
     document.querySelector("#modal-task-status").value = item.status;

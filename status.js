@@ -3,7 +3,9 @@
 
   const form = document.querySelector("#tracking-search-form");
   const input = document.querySelector("#tracking-id");
+  const requesterInput = document.querySelector("#tracking-requester-search");
   const submitButton = document.querySelector("#tracking-submit");
+  const refreshButton = document.querySelector("#tracking-refresh");
   const loading = document.querySelector("#tracking-loading");
   const result = document.querySelector("#tracking-result");
   const errorPanel = document.querySelector("#tracking-error");
@@ -39,6 +41,7 @@
   }
 
   function renderItem(item) {
+    setText("#tracking-title", item.title);
     setText("#tracking-description", item.description);
     setText("#tracking-result-id", item.id);
     setText("#tracking-status", item.status);
@@ -64,20 +67,23 @@
   function setLoading(isLoading) {
     loading.hidden = !isLoading;
     submitButton.disabled = isLoading;
+    refreshButton.disabled = isLoading;
     submitButton.textContent = isLoading ? "查詢中…" : "查詢任務";
   }
 
-  async function lookup(id, updateUrl = true) {
+  async function lookup(id, requester = "", updateUrl = true) {
     const requestId = String(id || "").trim().toUpperCase();
+    const requesterName = String(requester || "").trim();
     if (!requestId) return;
     input.value = requestId;
+    requesterInput.value = requesterName;
     result.hidden = true;
     errorPanel.hidden = true;
     recentSection.hidden = true;
     setLoading(true);
 
     try {
-      const item = await RequestStore.getRequest(requestId);
+      const item = await RequestStore.getRequest(requestId, requesterName);
       renderItem(item);
       result.hidden = false;
       if (updateUrl && window.history?.replaceState) {
@@ -107,7 +113,7 @@
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = id;
-      button.addEventListener("click", () => lookup(id));
+      button.addEventListener("click", () => lookup(id, requesterInput.value));
       container.appendChild(button);
     });
     recentSection.hidden = false;
@@ -115,10 +121,16 @@
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    lookup(input.value);
+    lookup(input.value, requesterInput.value);
   });
 
-  const initialId = new URLSearchParams(window.location.search).get("id");
-  if (initialId) lookup(initialId, false);
+  refreshButton.addEventListener("click", () => {
+    lookup(input.value, requesterInput.value, false);
+  });
+
+  const initialParams = new URLSearchParams(window.location.search);
+  const initialId = initialParams.get("id");
+  const initialRequester = initialParams.get("requester") || "";
+  if (initialId) lookup(initialId, initialRequester, false);
   else renderRecentIds();
 })();

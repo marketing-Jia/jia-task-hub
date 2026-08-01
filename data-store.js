@@ -71,6 +71,7 @@
       createdAt: String(item.createdAt || item["建立時間"] || ""),
       requester: String(item.requester || item["填寫人"] || ""),
       category: String(item.category || item["項目類別"] || "其他"),
+      title: String(item.title || item["工作標題"] || item.description || item["工作說明"] || ""),
       description: String(item.description || item["工作說明"] || ""),
       deliveryTime,
       deliveryOption: rawDeliveryOption === "other" || rawDeliveryOption === "其他／待確認" ? "other" : "specified",
@@ -101,6 +102,9 @@
     if (!CATEGORIES.includes(data.category)) {
       throw new Error("項目類別不正確。");
     }
+    if (!String(data.title || "").trim()) {
+      throw new Error("請填寫工作標題。");
+    }
 
     if (!isRemoteMode()) {
       const item = normalizeItem({
@@ -122,6 +126,7 @@
       action: "create",
       requester: data.requester,
       category: data.category,
+      title: data.title,
       description: data.description,
       deliveryTime: data.deliveryTime,
       notes: data.notes || "",
@@ -154,14 +159,18 @@
     return Array.isArray(items) ? items.map(normalizeItem) : [];
   }
 
-  async function getRequest(id) {
+  async function getRequest(id, requester = "") {
     const requestId = String(id || "").trim();
+    const requesterName = String(requester || "").trim();
     if (!requestId) throw new Error("請輸入任務編號。");
 
     if (!isRemoteMode()) {
       await new Promise((resolve) => setTimeout(resolve, 180));
       const item = readLocal().map(normalizeItem).find((request) => request.id === requestId);
       if (!item) throw new Error("找不到此任務，請確認編號是否正確。");
+      if (requesterName && item.requester.toLocaleLowerCase("zh-Hant") !== requesterName.toLocaleLowerCase("zh-Hant")) {
+        throw new Error("找不到符合任務編號與填寫人的任務，請確認後再試一次。");
+      }
       rememberRequestId(item.id);
       return item;
     }
@@ -169,6 +178,7 @@
     const url = new URL(getConfig().API_URL);
     url.searchParams.set("action", "get");
     url.searchParams.set("id", requestId);
+    if (requesterName) url.searchParams.set("requester", requesterName);
     url.searchParams.set("_", Date.now().toString());
     const response = await fetch(url.toString(), { method: "GET", redirect: "follow" });
     const payload = await parseResponse(response);

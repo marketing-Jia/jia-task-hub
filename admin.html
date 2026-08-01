@@ -58,7 +58,7 @@
       <section class="dashboard-head">
         <div>
           <p class="section-kicker">JIA'S WORK DASHBOARD</p>
-          <h1>Jia 的協作任務</h1>
+          <h1>Jia 的獨立任務看板</h1>
           <p>依交付時間掌握 Jia 的任務優先順序與近期工作量。</p>
         </div>
         <div class="dashboard-actions">
@@ -102,7 +102,7 @@
           <div class="filter-row">
             <label class="search-box" for="search-input">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.75" /><path d="m15 15 4 4" /></svg>
-              <input id="search-input" type="search" placeholder="搜尋填寫人或工作內容" />
+              <input id="search-input" type="search" placeholder="搜尋填寫人、標題或說明" />
             </label>
             <label class="filter-select">
               <span class="sr-only">類別篩選</span>
@@ -149,7 +149,7 @@
                 <th>交付時間</th>
                 <th>任務狀態</th>
                 <th>類別</th>
-                <th>工作內容</th>
+                <th>工作標題／說明</th>
                 <th>填寫人</th>
                 <th>備註</th>
                 <th>任務處理</th>
@@ -184,14 +184,15 @@
 
         <div class="modal-task-summary">
           <code id="modal-task-id">—</code>
-          <strong id="modal-task-description">—</strong>
+          <strong id="modal-task-title">—</strong>
+          <p id="modal-task-description">—</p>
           <span id="modal-task-requester">—</span>
         </div>
 
         <form id="task-update-form">
           <input type="hidden" id="modal-request-id" name="id" />
           <div class="field-group">
-            <label for="modal-task-status">任務狀態</label>
+            <label for="modal-task-status">任務狀態 <small>儲存後會同步顯示於追蹤頁</small></label>
             <div class="input-shell select-shell no-icon">
               <select id="modal-task-status" name="status" required>
                 <option value="待處理">待處理</option>

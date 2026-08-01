@@ -28,18 +28,18 @@
         </span>
       </a>
       <nav class="header-nav" aria-label="快速連結">
+        <a class="header-link active" href="./index.html" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          發布任務
+        </a>
         <a class="header-link" href="./status.html">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="8" />
             <path d="M12 8v4l3 2" />
           </svg>
           追蹤任務
-        </a>
-        <a class="header-link" href="./admin.html">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 5.75h16M4 12h16M4 18.25h16" />
-          </svg>
-          Jia 的任務看板
         </a>
       </nav>
     </header>
@@ -126,6 +126,21 @@
           </div>
 
           <div class="field-group">
+            <label for="title">工作標題 <span aria-label="必填">＊</span></label>
+            <div class="input-shell no-icon">
+              <input
+                id="title"
+                name="title"
+                type="text"
+                maxlength="120"
+                placeholder="請用一句話說明這項任務"
+                required
+              />
+            </div>
+            <p class="field-error" id="title-error"></p>
+          </div>
+
+          <div class="field-group">
             <label for="description">工作說明 <span aria-label="必填">＊</span></label>
             <textarea
               id="description"
@@ -173,9 +188,9 @@
               name="notes"
               rows="3"
               maxlength="500"
-              placeholder="可補充參考連結、協作對象、急件原因"
+              placeholder="可補充參考連結、協作對象、急件原因；如在 LINE 上有紀錄也可以備註給我～"
             ></textarea>
-            <p class="field-hint notes-hint">如在 LINE 上有紀錄，也可以備註提醒我～</p>
+            <p class="field-hint notes-hint">如在 LINE 上有紀錄，也可以備註給我～</p>
             <div class="field-meta align-right"><span id="notes-count">0 / 500</span></div>
           </div>
 

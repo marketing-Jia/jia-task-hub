@@ -21,29 +21,44 @@
         </span>
         <span><strong>給 Jia 的協作需求</strong><small>WORK REQUEST TO JIA</small></span>
       </a>
-      <a class="primary-button compact" href="./index.html">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-        發任務給 Jia
-      </a>
+      <nav class="header-nav" aria-label="快速連結">
+        <a class="header-link" href="./index.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+          發布任務
+        </a>
+        <a class="header-link active" href="./status.html" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" /><path d="M12 8v4l3 2" /></svg>
+          追蹤任務
+        </a>
+      </nav>
     </header>
 
     <main class="tracking-main" id="tracking-content">
       <section class="tracking-intro">
         <p class="section-kicker">TASK TRACKING</p>
         <h1>追蹤給 Jia 的任務</h1>
-        <p>輸入任務編號，即可查看處理狀態與 Jia 的交付回覆。</p>
+        <p>輸入任務編號，即可查看處理狀態與 Jia 的交付回覆；也可選填填寫人協助確認。</p>
       </section>
 
       <form class="tracking-search" id="tracking-search-form">
-        <label for="tracking-id">任務編號</label>
-        <div>
-          <span class="tracking-input-shell">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.75" /><path d="m15 15 4 4" /></svg>
-            <input id="tracking-id" name="id" type="text" autocomplete="off" placeholder="例如 REQ-20260801-AB12CD34" required />
-          </span>
+        <div class="tracking-search-fields">
+          <label class="tracking-query-field" for="tracking-id">
+            <span>任務編號</span>
+            <span class="tracking-input-shell">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.75" /><path d="m15 15 4 4" /></svg>
+              <input id="tracking-id" name="id" type="text" autocomplete="off" placeholder="例如 REQ-20260801-AB12CD34" required />
+            </span>
+          </label>
+          <label class="tracking-query-field" for="tracking-requester-search">
+            <span>填寫人 <small>選填</small></span>
+            <span class="tracking-input-shell requester-search-shell">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.25" /><path d="M5.75 19c.55-3.15 2.64-5 6.25-5s5.7 1.85 6.25 5" /></svg>
+              <input id="tracking-requester-search" name="requester" type="text" autocomplete="name" maxlength="40" placeholder="姓名或部門＋姓名" />
+            </span>
+          </label>
           <button class="primary-button" type="submit" id="tracking-submit">查詢任務</button>
         </div>
-        <p>任務編號可在送出成功畫面中找到。</p>
+        <p>任務編號可在送出成功畫面中找到；填寫人為選填，填入時需與原任務一致。</p>
       </form>
 
       <section class="recent-requests" id="recent-requests" hidden>
@@ -61,17 +76,20 @@
 
       <section class="tracking-error" id="tracking-error" hidden role="alert">
         <span aria-hidden="true">!</span>
-        <div><h2>找不到這個任務</h2><p id="tracking-error-copy">請確認任務編號後再試一次。</p></div>
+        <div><h2>找不到符合條件的任務</h2><p id="tracking-error-copy">請確認任務編號與填寫人後再試一次。</p></div>
       </section>
 
       <article class="tracking-result" id="tracking-result" hidden>
         <div class="tracking-result-head">
           <div>
             <span class="work-status-badge" id="tracking-status">待處理</span>
-            <h2 id="tracking-description">—</h2>
+            <h2 id="tracking-title">—</h2>
             <code id="tracking-result-id">—</code>
           </div>
-          <p>最後更新 <strong id="tracking-updated">—</strong></p>
+          <div class="tracking-result-update">
+            <p>最後更新 <strong id="tracking-updated">—</strong></p>
+            <button class="secondary-button compact" type="button" id="tracking-refresh">更新狀態</button>
+          </div>
         </div>
 
         <ol class="tracking-progress" id="tracking-progress" aria-label="任務進度">
@@ -85,6 +103,11 @@
           <div><span>項目類別</span><strong id="tracking-category">—</strong></div>
           <div><span>交付時間</span><strong id="tracking-due">—</strong></div>
           <div><span>建立時間</span><strong id="tracking-created">—</strong></div>
+        </div>
+
+        <div class="tracking-description">
+          <span>工作說明</span>
+          <p id="tracking-description">—</p>
         </div>
 
         <div class="tracking-notes" id="tracking-notes-wrap" hidden>
